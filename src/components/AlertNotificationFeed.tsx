@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { BellRing, ShieldCheck, ShieldAlert, Sparkles, Wifi, WifiOff } from 'lucide-react';
+import { BellRing, Sparkles, Wifi, WifiOff } from 'lucide-react';
 
 interface WSAlertVehicle {
 	vehicle_id: string;

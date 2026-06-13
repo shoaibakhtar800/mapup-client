@@ -113,8 +113,10 @@ export default function VehicleManager({
       setDriverName("");
       setPhone("");
       toast.success("Vehicle registered successfully!");
-    } catch (error: any) {
-      toast.error(error.message || "Registration failed");
+    } catch (error: unknown) {
+      const msg =
+        error instanceof Error ? error.message : "Registration failed";
+      toast.error(msg);
     } finally {
       setIsSubmittingReg(false);
     }
@@ -220,7 +222,7 @@ export default function VehicleManager({
               No vehicles registered. Set up your fleet first!
             </div>
           ) : (
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-75 overflow-y-auto pr-1">
               {vehicles.map((v) => {
                 const isSelected = v.id === selectedVehicleId;
                 const loc = vehicleLocations[v.id];
@@ -375,10 +377,13 @@ export default function VehicleManager({
                   {isSettingLocation ? (
                     <span className="text-emerald-600 dark:text-emerald-400 font-medium animate-pulse">
                       Scroll up and click anywhere on the map to instantly set
-                      the vehicle's position.
+                      the vehicle&apos;s position.
                     </span>
                   ) : (
-                    "Click the button above then select a coordinate on the map to instantly update the vehicle's location."
+                    <span>
+                      Click the button above then select a coordinate on the map
+                      to instantly update the vehicle&apos;s location.
+                    </span>
                   )}
                 </p>
               </div>

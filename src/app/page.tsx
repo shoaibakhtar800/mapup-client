@@ -19,7 +19,7 @@ import { BellRing, CarFront, History, Landmark, MapIcon } from "lucide-react";
 const MapDashboard = dynamic(() => import("@/components/MapDashboard"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[500px] flex items-center justify-center bg-zinc-50 border border-zinc-150 rounded-xl dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="w-full h-125 flex items-center justify-center bg-zinc-50 border border-zinc-150 rounded-xl dark:bg-zinc-900 dark:border-zinc-800">
       <div className="text-zinc-400 font-medium animate-pulse">
         Initializing Maps Engine...
       </div>
@@ -59,6 +59,53 @@ interface VehicleLocation {
     geofence_name: string;
     category: string;
   }[];
+}
+
+interface CreateGeofenceParams {
+  name: string;
+  description: string;
+  coordinates: [number, number][];
+  category: string;
+}
+
+interface RegisterVehicleParams {
+  vehicle_number: string;
+  driver_name: string;
+  vehicle_type: string;
+  phone: string;
+}
+
+interface UpdateLocationParams {
+  vehicle_id: string;
+  latitude: number;
+  longitude: number;
+  timestamp: string;
+}
+
+interface ConfigureAlertParams {
+  geofence_id: string;
+  vehicle_id?: string;
+  event_type: string;
+}
+
+interface WSAlertMessage {
+  event_id: string;
+  event_type: string;
+  timestamp: string;
+  vehicle: {
+    vehicle_id: string;
+    vehicle_number: string;
+    driver_name: string;
+  };
+  geofence: {
+    geofence_id: string;
+    geofence_name: string;
+    category: string;
+  };
+  location: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export default function Home() {
@@ -173,7 +220,7 @@ export default function Home() {
 
   // --- 2. Mutations ---
   const createGeofenceMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CreateGeofenceParams) => {
       const res = await fetch(`${API_URL}/geofences`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,7 +239,7 @@ export default function Home() {
   });
 
   const registerVehicleMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: RegisterVehicleParams) => {
       const res = await fetch(`${API_URL}/vehicles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -210,7 +257,7 @@ export default function Home() {
   });
 
   const updateLocationMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: UpdateLocationParams) => {
       const res = await fetch(`${API_URL}/vehicles/location`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -222,7 +269,15 @@ export default function Home() {
       }
       return { res: await res.json(), req: data };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: {
+      res: {
+        current_geofences: {
+          geofence_id: string;
+          geofence_name: string;
+        }[];
+      };
+      req: UpdateLocationParams;
+    }) => {
       // Update local locations map
       setVehicleLocations((prev) => ({
         ...prev,
@@ -237,7 +292,7 @@ export default function Home() {
             timestamp: data.req.timestamp,
           },
           current_geofences:
-            data.res.current_geofences.map((cg: any) => ({
+            data.res.current_geofences.map((cg) => ({
               geofence_id: cg.geofence_id,
               geofence_name: cg.geofence_name,
               category:
@@ -256,7 +311,7 @@ export default function Home() {
   });
 
   const configureAlertMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: ConfigureAlertParams) => {
       const res = await fetch(`${API_URL}/alerts/configure`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -288,14 +343,16 @@ export default function Home() {
       toast.success("Vehicle location updated on map successfully!");
       // Auto-switch to Fleet tab so user sees the updated position info
       setActiveTab("vehicles");
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.dismiss(loadingToast);
-      toast.error(err.message || "Failed to update location");
+      const errMsg =
+        err instanceof Error ? err.message : "Failed to update location";
+      toast.error(errMsg);
     }
   };
 
   // Triggered when a live WS event is received
-  const handleWSNotification = (wsMsg: any) => {
+  const handleWSNotification = (wsMsg: WSAlertMessage) => {
     // Live update the map markers directly
     setVehicleLocations((prev) => ({
       ...prev,
@@ -354,8 +411,8 @@ export default function Home() {
       {/* Main Grid Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 flex-1 flex flex-col gap-6">
         {/* Top Map + Real-time Alerts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:h-[500px] items-stretch">
-          <div className="lg:col-span-3 h-[500px] lg:h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:h-125 items-stretch">
+          <div className="lg:col-span-3 h-125 lg:h-full">
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden h-full">
               <CardContent className="p-0 h-full">
                 <MapDashboard
@@ -372,7 +429,7 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-          <div className="lg:col-span-1 h-[400px] lg:h-full">
+          <div className="lg:col-span-1 h-100 lg:h-full">
             <AlertNotificationFeed
               apiUrl={API_URL}
               onNewAlert={handleWSNotification}
@@ -382,23 +439,10 @@ export default function Home() {
 
         {/* Bottom Feature Tabs Panel */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className="
-		w-full grid grid-cols-4
-		h-12 p-1
-		bg-white dark:bg-zinc-900
-		border border-zinc-200 dark:border-zinc-800
-		rounded-lg shadow-sm
-	"
-          >
+          <TabsList className="w-full grid grid-cols-4 h-12 p-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm">
             <TabsTrigger
               value="geofences"
-              className="
-			w-full min-w-0
-			text-xs font-semibold
-			flex items-center justify-center gap-1.5
-			rounded-md
-		"
+              className="w-full min-w-0 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md"
             >
               <Landmark className="w-4 h-4 shrink-0" />
               <span className="truncate">Zones</span>
@@ -406,12 +450,7 @@ export default function Home() {
 
             <TabsTrigger
               value="vehicles"
-              className="
-			w-full min-w-0
-			text-xs font-semibold
-			flex items-center justify-center gap-1.5
-			rounded-md
-		"
+              className="w-full min-w-0 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md"
             >
               <CarFront className="w-4 h-4 shrink-0" />
               <span className="truncate">Fleet</span>
@@ -419,12 +458,7 @@ export default function Home() {
 
             <TabsTrigger
               value="alerts"
-              className="
-			w-full min-w-0
-			text-xs font-semibold
-			flex items-center justify-center gap-1.5
-			rounded-md
-		"
+              className="w-full min-w-0 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md"
             >
               <BellRing className="w-4 h-4 shrink-0" />
               <span className="truncate">Rules</span>
@@ -432,12 +466,7 @@ export default function Home() {
 
             <TabsTrigger
               value="violations"
-              className="
-			w-full min-w-0
-			text-xs font-semibold
-			flex items-center justify-center gap-1.5
-			rounded-md
-		"
+              className="w-full min-w-0 text-xs font-semibold flex items-center justify-center gap-1.5 rounded-md"
             >
               <History className="w-4 h-4 shrink-0" />
               <span className="truncate">Logs</span>
