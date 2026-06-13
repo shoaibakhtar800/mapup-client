@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Bell, ShieldAlert, CheckCircle2 } from "lucide-react";
 
@@ -190,8 +191,25 @@ export default function AlertConfigurator({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-12 flex justify-center text-zinc-400">
-              Loading rules...
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex flex-col p-3 rounded-lg border border-zinc-150 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/35"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-14 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-36" />
+                    <div className="flex items-center gap-1">
+                      <Skeleton className="h-2.5 w-24" />
+                      <Skeleton className="h-2.5 w-20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : alerts.length === 0 ? (
             <div className="py-12 text-center text-zinc-400 italic border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">

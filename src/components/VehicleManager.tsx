@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -214,8 +215,27 @@ export default function VehicleManager({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-12 flex justify-center text-zinc-400">
-              Loading vehicles...
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 rounded-lg border border-zinc-150 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/35"
+                >
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                </div>
+              ))}
             </div>
           ) : vehicles.length === 0 ? (
             <div className="py-12 text-center text-zinc-400 italic border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">

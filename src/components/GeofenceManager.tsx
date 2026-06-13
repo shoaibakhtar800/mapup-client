@@ -20,8 +20,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { PlusCircle, MapPin, Undo2, Trash2, CheckCircle2 } from "lucide-react";
+import { PlusCircle, MapPin, Undo2, Trash2, CheckCircle2, X } from "lucide-react";
 
 interface Geofence {
   id: string;
@@ -82,6 +83,12 @@ export default function GeofenceManager({
 
   const handleClearPoints = () => {
     setDrawPoints([]);
+  };
+
+  const handleCancelDrawing = () => {
+    setIsDrawingGeofence(false);
+    setDrawPoints([]);
+    toast.info("Drawing cancelled.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,11 +208,11 @@ export default function GeofenceManager({
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Button
                       type="button"
                       variant="secondary"
-                      className="flex-1 flex items-center justify-center gap-1.5"
+                      className="flex items-center justify-center gap-1.5 text-xs px-2"
                       onClick={handleUndoPoint}
                       disabled={drawPoints.length === 0}
                     >
@@ -215,12 +222,21 @@ export default function GeofenceManager({
                     <Button
                       type="button"
                       variant="destructive"
-                      className="flex-1 flex items-center justify-center gap-1.5"
+                      className="flex items-center justify-center gap-1.5 text-xs px-2"
                       onClick={handleClearPoints}
                       disabled={drawPoints.length === 0}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       Clear
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex items-center justify-center gap-1.5 text-xs px-2"
+                      onClick={handleCancelDrawing}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Cancel
                     </Button>
                   </div>
                   <div className="text-[11px] bg-zinc-50 dark:bg-zinc-900 border border-zinc-150 p-2 rounded max-h-24 overflow-y-auto font-mono text-zinc-500">
@@ -285,8 +301,25 @@ export default function GeofenceManager({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-12 flex justify-center text-zinc-400">
-              Loading geofences...
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex flex-col p-3 rounded-lg border border-zinc-150 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/35"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-20 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-48" />
+                    <div className="flex items-center gap-1">
+                      <Skeleton className="h-2.5 w-20" />
+                      <Skeleton className="h-2.5 w-16" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredGeofences.length === 0 ? (
             <div className="py-12 text-center text-zinc-400 italic border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">

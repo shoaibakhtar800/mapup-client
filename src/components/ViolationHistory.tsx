@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   History,
@@ -261,8 +262,28 @@ export default function ViolationHistory({
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="py-20 flex justify-center text-zinc-400">
-              Loading violations...
+            <div className="overflow-x-auto rounded-lg border border-zinc-150 dark:border-zinc-800">
+              <table className="w-full text-left border-collapse text-xs font-sans">
+                <thead>
+                  <tr className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-150 dark:border-zinc-800">
+                    {["Event ID", "Vehicle", "Geofence Area", "Crossing", "Coordinates", "Timestamp"].map((h) => (
+                      <th key={h} className="p-3 text-zinc-400 font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-850">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <tr key={i}>
+                      <td className="p-3"><Skeleton className="h-3 w-20" /></td>
+                      <td className="p-3"><Skeleton className="h-3.5 w-24" /></td>
+                      <td className="p-3"><Skeleton className="h-3 w-28" /></td>
+                      <td className="p-3"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                      <td className="p-3"><Skeleton className="h-3 w-32" /></td>
+                      <td className="p-3"><Skeleton className="h-3 w-28" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : violations.length === 0 ? (
             <div className="py-20 text-center text-zinc-400 italic border border-dashed rounded-lg border-zinc-200 dark:border-zinc-800">
